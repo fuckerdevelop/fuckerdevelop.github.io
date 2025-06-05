@@ -557,6 +557,7 @@
         // Function to save chat to Loops API
         async function saveToWhatsAppChatLoop(title, link) {
             try {
+                // Replace with the SaveChatLink Loop ID
                 const response = await fetch('https://magicloops.dev/api/loop/a2b86b65-5ba7-434c-9ec0-a6fb49b9188b/run', {
                     method: 'POST',
                     body: JSON.stringify({ 
