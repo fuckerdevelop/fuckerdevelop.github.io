@@ -587,48 +587,40 @@
             loadChats();
         });
         
-        // Load chats function (now using localStorage)
+        // Load chats function (updated to use Loops API instead of localStorage)
         function loadChats() {
             const container = document.getElementById('chats-container');
             
             // Show loading state
             container.innerHTML = '<p class="text-center col-span-full text-gray-500 italic">Cargando chats...</p>';
             
-            // Short timeout to show loading state
-            setTimeout(() => {
-                // Clear loading message
+            // Fetch published chats from the Loops API 'Obtener Chats'
+            fetch('https://magicloops.dev/api/loop/3ff4543c-1302-413b-ac97-d990d18b6ee8/run', {
+                method: 'POST',
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
                 container.innerHTML = '';
+                const chats = data.chats || [];
                 
-                // Get chats from localStorage
-                const savedChats = JSON.parse(localStorage.getItem('whatsappChats') || '[]');
-                
-                // Filter out chats with title 'Quinceaños Carolina'
-                const filteredChats = savedChats.filter(chat => chat.title !== 'Quinceaños Carolina');
-                
-                if (filteredChats.length === 0) {
+                if (chats.length === 0) {
                     // Show message if no chats found
                     container.innerHTML = '<p class="text-center col-span-full text-gray-500">No hay chats disponibles. ¡Sé el primero en compartir uno!</p>';
                     return;
                 }
                 
-                // Track unique timestamps to prevent duplicates
-                const addedTimestamps = new Set();
-                
-                // Create chat cards
-                filteredChats.forEach(chat => {
-                    // Only add the chat if its timestamp hasn't been seen before
-                    if (!addedTimestamps.has(chat.timestamp)) {
-                        addedTimestamps.add(chat.timestamp);
-                        const card = createChatCard(chat, false);
-                        container.appendChild(card);
-                    }
+                // Create chat cards from API response
+                chats.forEach(chat => {
+                    const card = createChatCard(chat, false);
+                    container.appendChild(card);
                 });
-                
-                // If after deduplication we have no chats left, show the empty message
-                if (container.children.length === 0) {
-                    container.innerHTML = '<p class="text-center col-span-full text-gray-500">No hay chats disponibles. ¡Sé el primero en compartir uno!</p>';
-                }
-            }, 1000);
+            })
+            .catch(error => {
+                console.error('Error fetching chats:', error);
+                // Display error message instead of falling back to localStorage
+                container.innerHTML = '<p class="text-center col-span-full text-red-500">Error al cargar los chats. Por favor, intenta de nuevo más tarde.</p>';
+            });
         }
         
         // Load user chats function
@@ -873,6 +865,14 @@
                 document.body.style.overflow = '';
             }
         });
+        
+        // Set up polling for real-time updates
+        setInterval(() => {
+            // Only refresh the 'all-chats' view if it's active
+            if (document.getElementById('all-chats').classList.contains('active')) {
+                loadChats();
+            }
+        }, 5000);
     </script>
 </body>
 </html>
