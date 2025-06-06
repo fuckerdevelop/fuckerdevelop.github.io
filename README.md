@@ -462,6 +462,7 @@
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-link')[1].classList.add('active');
             
+            // Load chats immediately to see the newly published chat
             loadChats();
         });
         
@@ -550,6 +551,9 @@
                     
                     // Create confetti effect
                     createConfetti();
+                    
+                    // Load chats immediately to update the UI with the new chat
+                    loadChats();
                 }, 1000);
             }
         });
@@ -584,6 +588,7 @@
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-link')[1].classList.add('active');
             
+            // Load chats immediately to see the newly published chat
             loadChats();
         });
         
@@ -618,8 +623,22 @@
             })
             .catch(error => {
                 console.error('Error fetching chats:', error);
-                // Display error message instead of falling back to localStorage
-                container.innerHTML = '<p class="text-center col-span-full text-red-500">Error al cargar los chats. Por favor, intenta de nuevo más tarde.</p>';
+                // Fall back to localStorage if API fails
+                const savedChats = JSON.parse(localStorage.getItem('whatsappChats') || '[]');
+                
+                container.innerHTML = '';
+                
+                if (savedChats.length === 0) {
+                    // Show message if no chats found
+                    container.innerHTML = '<p class="text-center col-span-full text-gray-500">No hay chats disponibles. ¡Sé el primero en compartir uno!</p>';
+                    return;
+                }
+                
+                // Create chat cards from localStorage
+                savedChats.forEach(chat => {
+                    const card = createChatCard(chat, false);
+                    container.appendChild(card);
+                });
             });
         }
         
@@ -865,14 +884,6 @@
                 document.body.style.overflow = '';
             }
         });
-        
-        // Set up polling for real-time updates
-        setInterval(() => {
-            // Only refresh the 'all-chats' view if it's active
-            if (document.getElementById('all-chats').classList.contains('active')) {
-                loadChats();
-            }
-        }, 5000);
     </script>
 </body>
 </html>
